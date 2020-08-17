@@ -10,7 +10,7 @@ import time
 import numpy as np
 
 
-def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers, epoch_iter, interval):
+def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers, epoch_iter, interval, start_from=None):
 	file_num = len(os.listdir(train_img_path))
 	trainset = custom_dataset(train_img_path, train_gt_path)
 	train_loader = data.DataLoader(trainset, batch_size=batch_size, \
@@ -24,6 +24,8 @@ def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers,
 		model = nn.DataParallel(model)
 		data_parallel = True
 	model.to(device)
+	if start_from:
+		model.load_state_dict(torch.load(start_from))
 	optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 	scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[epoch_iter//2], gamma=0.1)
 
@@ -55,13 +57,14 @@ def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers,
 
 
 if __name__ == '__main__':
-	train_img_path = os.path.abspath('../ICDAR_2015/train_img')
-	train_gt_path  = os.path.abspath('../ICDAR_2015/train_gt')
+	train_img_path = "/big_disk/evjeny/data/generated_perimetry_images"
+	train_gt_path  = "/big_disk/evjeny/data/generated_perimetry_labels"
 	pths_path      = './pths'
-	batch_size     = 24 
+	start_from = "./pths/east_vgg16.pth"
+	batch_size     = 6
 	lr             = 1e-3
 	num_workers    = 4
 	epoch_iter     = 600
 	save_interval  = 5
-	train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers, epoch_iter, save_interval)	
+	train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers, epoch_iter, save_interval, start_from)	
 	
