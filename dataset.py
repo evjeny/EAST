@@ -370,8 +370,8 @@ def extract_vertices(lines):
 class custom_dataset(data.Dataset):
 	def __init__(self, img_path, gt_path, scale=0.25, length=512):
 		super(custom_dataset, self).__init__()
-		self.img_files = [os.path.join(img_path, img_file) for img_file in sorted(os.listdir(img_path))]
-		self.gt_files  = [os.path.join(gt_path, gt_file) for gt_file in sorted(os.listdir(gt_path))]
+		self.img_files = [os.path.join(img_path, img_file) for img_file in sorted(os.listdir(img_path)) if img_file.endswith(".jpg")]
+		self.gt_files  = [os.path.join(gt_path, gt_file) for gt_file in sorted(os.listdir(gt_path)) if gt_file.endswith(".txt")]
 		self.scale = scale
 		self.length = length
 

@@ -31,7 +31,6 @@ def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers,
 
 	for epoch in range(epoch_iter):	
 		model.train()
-		scheduler.step()
 		epoch_loss = 0
 		epoch_time = time.time()
 		for i, (img, gt_score, gt_geo, ignored_map) in enumerate(train_loader):
@@ -54,7 +53,7 @@ def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers,
 		if (epoch + 1) % interval == 0:
 			state_dict = model.module.state_dict() if data_parallel else model.state_dict()
 			torch.save(state_dict, os.path.join(pths_path, 'model_epoch_{}.pth'.format(epoch+1)))
-
+		scheduler.step()
 
 if __name__ == '__main__':
 	train_img_path = "/big_disk/evjeny/data/generated_perimetry_images"
