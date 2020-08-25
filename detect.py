@@ -1,5 +1,8 @@
 import torch
 from torchvision import transforms
+
+import argparse
+import time
 from PIL import Image, ImageDraw
 from model import EAST
 import os
@@ -181,17 +184,25 @@ def detect_dataset(model, device, test_img_path, submit_path):
 
 
 if __name__ == '__main__':
-	img_path    = '/big_disk/evjeny/data/perimetry_cut_circles/0.jpg'
-	model_path  = './pths/east_vgg16.pth'
-	res_img     = './res.bmp'
-	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+	model_path  = './pths/model_epoch_208.pth'
+	device = torch.device("cpu")
 	model = EAST().to(device)
-	model.load_state_dict(torch.load(model_path))
+	model.load_state_dict(torch.load(model_path, map_location=device))
 	model.eval()
-	img = Image.open(img_path)
 	
-	boxes = detect(img, model, device)
-	plot_img = plot_boxes(img, boxes)	
-	plot_img.save(res_img)
-
+	resize_to_big = False
+	result_dir = "result"
+	os.makedirs(result_dir, exist_ok=True)
+	image_nums = list(range(0, 10))
+	t0 = time.time()
+	for image_num in image_nums:
+		img_path = '/big_disk/evjeny/data/perimetry_cut_circles/{}.jpg'.format(image_num)
+		img = Image.open(img_path)
+		if resize_to_big:
+			img = img.resize((960, 960))
+		boxes = detect(img, model, device)
+		plot_img = plot_boxes(img, boxes)
+		plot_img.save(os.path.join(result_dir, "result_{}.jpg".format(image_num)))
+	t1 = time.time()
+	print((t1-t0)/len(image_nums), "s for sample") 
 
