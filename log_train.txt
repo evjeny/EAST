@@ -1,0 +1,28 @@
+2020-08-25 10:02:48,569 [MainThread  ] [INFO ]  begin training
+2020-08-25 10:04:12,226 [MainThread  ] [INFO ]  begin training
+2020-08-25 10:04:20,965 [MainThread  ] [INFO ]  start from weights ./pths/model_small_dataset_last.pth
+2020-08-25 10:04:21,019 [MainThread  ] [INFO ]  start from epoch model_epoch_1.pth
+2020-08-25 10:04:52,803 [MainThread  ] [INFO ]  classify loss is 0.11343533, angle loss is 0.07668723, iou loss is 0.27696583
+2020-08-25 10:04:53,214 [MainThread  ] [INFO ]  Epoch is [2/600], mini-batch is [1/1083], time consumption is 0.91418505, batch_loss is 1.15727353
+2020-08-25 10:04:53,421 [MainThread  ] [INFO ]  classify loss is 0.10959846, angle loss is 0.04577038, iou loss is 0.35877547
+2020-08-25 10:04:53,783 [MainThread  ] [INFO ]  Epoch is [2/600], mini-batch is [2/1083], time consumption is 0.56356812, batch_loss is 0.92607772
+2020-08-25 10:04:53,987 [MainThread  ] [INFO ]  classify loss is 0.10256594, angle loss is 0.00526946, iou loss is 0.18666346
+2020-08-25 10:04:54,350 [MainThread  ] [INFO ]  Epoch is [2/600], mini-batch is [3/1083], time consumption is 0.56212902, batch_loss is 0.34192398
+2020-08-25 10:04:54,555 [MainThread  ] [INFO ]  classify loss is 0.10136431, angle loss is 0.02313342, iou loss is 0.25080413
+2020-08-25 10:04:54,917 [MainThread  ] [INFO ]  Epoch is [2/600], mini-batch is [4/1083], time consumption is 0.56152987, batch_loss is 0.58350265
+2020-08-25 10:05:13,063 [MainThread  ] [INFO ]  classify loss is 0.24910611, angle loss is 0.10381438, iou loss is 0.49843794
+2020-08-25 10:05:13,420 [MainThread  ] [INFO ]  Epoch is [2/600], mini-batch is [5/1083], time consumption is 0.55841327, batch_loss is 1.78568792
+2020-08-25 10:05:13,622 [MainThread  ] [INFO ]  classify loss is 0.14669991, angle loss is 0.03612312, iou loss is 0.25960684
+2020-08-25 10:05:13,983 [MainThread  ] [INFO ]  Epoch is [2/600], mini-batch is [6/1083], time consumption is 0.55838776, batch_loss is 0.76753789
+2020-08-25 10:05:14,186 [MainThread  ] [INFO ]  classify loss is 0.11419481, angle loss is 0.09447093, iou loss is 0.31467605
+2020-08-25 10:05:14,546 [MainThread  ] [INFO ]  Epoch is [2/600], mini-batch is [7/1083], time consumption is 0.55741191, batch_loss is 1.37358022
+2020-08-25 10:05:14,751 [MainThread  ] [INFO ]  classify loss is 0.10958582, angle loss is 0.02459921, iou loss is 0.18144481
+2020-08-25 10:05:15,111 [MainThread  ] [INFO ]  Epoch is [2/600], mini-batch is [8/1083], time consumption is 0.55999279, batch_loss is 0.53702271
+2020-08-25 10:05:55,555 [MainThread  ] [INFO ]  classify loss is 0.10488296, angle loss is 0.11417367, iou loss is 0.35593516
+2020-08-25 10:05:55,911 [MainThread  ] [INFO ]  Epoch is [2/600], mini-batch is [9/1083], time consumption is 0.57570195, batch_loss is 1.60255480
+2020-08-25 10:05:56,115 [MainThread  ] [INFO ]  classify loss is 0.08272207, angle loss is 0.01660806, iou loss is 0.23449574
+2020-08-25 10:05:56,474 [MainThread  ] [INFO ]  Epoch is [2/600], mini-batch is [10/1083], time consumption is 0.55742216, batch_loss is 0.48329839
+2020-08-25 10:05:56,680 [MainThread  ] [INFO ]  classify loss is 0.10460842, angle loss is 0.00658632, iou loss is 0.17969309
+2020-08-25 10:05:57,044 [MainThread  ] [INFO ]  Epoch is [2/600], mini-batch is [11/1083], time consumption is 0.56479001, batch_loss is 0.35016465
+2020-08-25 10:05:57,248 [MainThread  ] [INFO ]  classify loss is 0.09887677, angle loss is 0.05372440, iou loss is 0.28160882
+2020-08-25 10:05:57,609 [MainThread  ] [INFO ]  Epoch is [2/600], mini-batch is [12/1083], time consumption is 0.56060266, batch_loss is 0.91772962
