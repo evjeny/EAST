@@ -2,7 +2,7 @@ import torch
 from torch.utils import data
 from torch import nn
 from torch.optim import lr_scheduler
-from dataset import custom_dataset
+from dataset import CustomDataset
 from model import EAST
 from loss import Loss
 import os
@@ -15,7 +15,7 @@ def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers,
     logger.info("begin training")
     
     file_num = len(os.listdir(train_img_path))
-    trainset = custom_dataset(train_img_path, train_gt_path)
+    trainset = CustomDataset(train_img_path, train_gt_path)
     train_loader = data.DataLoader(trainset, batch_size=batch_size, \
                                    shuffle=True, num_workers=num_workers, drop_last=True)
     
@@ -35,10 +35,7 @@ def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers,
         model.load_state_dict(torch.load(os.path.join(pths_path, weights_path)))
         logger.info("start from epoch {}".format(weights_path))
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    # scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[epoch_iter//2], gamma=0.1)
     scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.3)
-    for k in range(start_from_epoch):
-        scheduler.step()
 
     for epoch in range(start_from_epoch, epoch_iter):    
         model.train()
@@ -47,7 +44,6 @@ def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers,
         for i, (img, gt_score, gt_geo, ignored_map) in enumerate(train_loader):
             start_time = time.time()
             img, gt_score, gt_geo, ignored_map = img.to(device), gt_score.to(device), gt_geo.to(device), ignored_map.to(device)
-            print("batch shape", img.shape)
             pred_score, pred_geo = model(img)
             loss = criterion(gt_score, pred_score, gt_geo, pred_geo, ignored_map)
             
@@ -71,8 +67,8 @@ if __name__ == '__main__':
     train_img_path = "/home/evjeny/data_dir/perimetry_text_detection_split/train_images"
     train_gt_path  = "/home/evjeny/data_dir/perimetry_text_detection_split/train_gts"
     pths_path      = './pths'
-    start_from = "./pths/model_epoch_3.pth"
-    start_from_epoch = 3
+    start_from = None
+    start_from_epoch = 0
     batch_size     = 6
     lr             = 1e-3
     num_workers    = 8
