@@ -5,40 +5,29 @@ import torch.nn.functional as F
 import math
 
 
-class DensenetExtractor(nn.Module):
-    def __init__(self, pretrained):
-        super(DensenetExtractor, self).__init__()
-        self.features = torch.hub.load("pytorch/vision:v0.8.0", "densenet201", pretrained=pretrained).features
-        
-        self.conv1 = nn.Conv2d(256, 128, 1)
-        self.conv2 = nn.Conv2d(512, 256, 1)
-        self.conv3 = nn.Conv2d(1792, 512, 1)
-        self.conv4 = nn.Conv2d(1920, 512, 1)
+class ResnetExtractor(nn.Module):
+    def __init__(self, pretrained=True):
+        super(ResnetExtractor, self).__init__()
+        self.features = torch.hub.load("pytorch/vision:v0.8.0", "resnet34", pretrained=pretrained)
+        self.conv1 = nn.Conv2d(64, 128, 1)
+        self.conv2 = nn.Conv2d(128, 256, 1)
+        self.conv3 = nn.Conv2d(256, 512, 1)
+        self.conv4 = nn.Identity()
 
     def forward(self, x):
-        out = []
+        x = self.features.bn1(self.features.conv1(x))
+        x = self.features.maxpool(self.features.relu(x))
         
-        x = self.features.conv0(x)
-        x = self.features.norm0(x)
-        x = self.features.relu0(x)
-        x = self.features.pool0(x)
+        x = self.features.layer1(x)
+        x1 = self.conv1(x)
+        x = self.features.layer2(x)
+        x2 = self.conv2(x)
+        x = self.features.layer3(x)
+        x3 = self.conv3(x)
+        x = self.features.layer4(x)
+        x4 = self.conv4(x)
         
-        x = self.features.denseblock1(x)
-        out.append(self.conv1(x))
-        x = self.features.transition1(x)
-        
-        x = self.features.denseblock2(x)
-        out.append(self.conv2(x))
-        x = self.features.transition2(x)
-        
-        x = self.features.denseblock3(x)
-        out.append(self.conv3(x))
-        x = self.features.transition3(x)
-        
-        x = self.features.denseblock4(x)
-        out.append(self.conv4(x))
-        
-        return out
+        return [x1, x2, x3, x4]
 
 
 class Merger(nn.Module):
@@ -125,7 +114,7 @@ class Outputer(nn.Module):
 class EAST(nn.Module):
     def __init__(self, pretrained=True):
         super(EAST, self).__init__()
-        self.extractor = DensenetExtractor(pretrained)
+        self.extractor = ResnetExtractor(pretrained)
         self.merge = Merger()
         self.output = Outputer()
     
