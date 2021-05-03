@@ -133,6 +133,7 @@ pths/*
 
 # train stuffs
 log_train.txt
+result
 
 # ide stuffs
 .vscode

@@ -184,7 +184,7 @@ def detect_dataset(model, device, test_img_path, submit_path):
 
 
 if __name__ == '__main__':
-    model_path  = './pths/model_epoch_132.pth'
+    model_path  = './pths/model_epoch_3.pth'
     device = torch.device("cpu")
     model = EAST().to(device)
     model.load_state_dict(torch.load(model_path, map_location=device))

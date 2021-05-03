@@ -20,7 +20,7 @@ def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers,
                                    shuffle=True, num_workers=num_workers, drop_last=True)
     
     criterion = Loss(logger)
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = EAST()
     data_parallel = False
     if torch.cuda.device_count() > 1:
@@ -35,7 +35,10 @@ def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers,
         model.load_state_dict(torch.load(os.path.join(pths_path, weights_path)))
         logger.info("start from epoch {}".format(weights_path))
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[epoch_iter//2], gamma=0.1)
+    # scheduler = lr_scheduler.MultiStepLR(optimizer, milestones=[epoch_iter//2], gamma=0.1)
+    scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.3)
+    for k in range(start_from_epoch):
+        scheduler.step()
 
     for epoch in range(start_from_epoch, epoch_iter):    
         model.train()
@@ -44,6 +47,7 @@ def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers,
         for i, (img, gt_score, gt_geo, ignored_map) in enumerate(train_loader):
             start_time = time.time()
             img, gt_score, gt_geo, ignored_map = img.to(device), gt_score.to(device), gt_geo.to(device), ignored_map.to(device)
+            print("batch shape", img.shape)
             pred_score, pred_geo = model(img)
             loss = criterion(gt_score, pred_score, gt_geo, pred_geo, ignored_map)
             
@@ -67,9 +71,9 @@ if __name__ == '__main__':
     train_img_path = "/home/evjeny/data_dir/perimetry_text_detection_split/train_images"
     train_gt_path  = "/home/evjeny/data_dir/perimetry_text_detection_split/train_gts"
     pths_path      = './pths'
-    start_from = None
-    start_from_epoch = 0
-    batch_size     = 4
+    start_from = "./pths/model_epoch_3.pth"
+    start_from_epoch = 3
+    batch_size     = 6
     lr             = 1e-3
     num_workers    = 8
     epoch_iter     = 600
