@@ -5,11 +5,45 @@ import torch.nn.functional as F
 import math
 
 
+class DensenetExtractor(nn.Module):
+    def __init__(self, pretrained):
+        super(DensenetExtractor, self).__init__()
+        self.features = torch.hub.load("pytorch/vision:v0.8.0", "densenet201", pretrained=pretrained).features
+        
+        self.conv1 = nn.Conv2d(256, 128, 1)
+        self.conv2 = nn.Conv2d(512, 256, 1)
+        self.conv3 = nn.Conv2d(1792, 512, 1)
+        self.conv4 = nn.Conv2d(1920, 512, 1)
+
+    def forward(self, x):
+        out = []
+        
+        x = self.features.conv0(x)
+        x = self.features.norm0(x)
+        x = self.features.relu0(x)
+        x = self.features.pool0(x)
+        
+        x = self.features.denseblock1(x)
+        out.append(self.conv1(x))
+        x = self.features.transition1(x)
+        
+        x = self.features.denseblock2(x)
+        out.append(self.conv2(x))
+        x = self.features.transition2(x)
+        
+        x = self.features.denseblock3(x)
+        out.append(self.conv3(x))
+        x = self.features.transition3(x)
+        
+        x = self.features.denseblock4(x)
+        out.append(self.conv4(x))
+        
+        return out
 
 
-class merge(nn.Module):
+class Merger(nn.Module):
     def __init__(self):
-        super(merge, self).__init__()
+        super(Merger, self).__init__()
 
         self.conv1 = nn.Conv2d(1024, 128, 1)
         self.bn1 = nn.BatchNorm2d(128)
@@ -64,9 +98,9 @@ class merge(nn.Module):
         y = self.relu7(self.bn7(self.conv7(y)))
         return y
 
-class output(nn.Module):
+class Outputer(nn.Module):
     def __init__(self, scope=512):
-        super(output, self).__init__()
+        super(Outputer, self).__init__()
         self.conv1 = nn.Conv2d(32, 1, 1)
         self.sigmoid1 = nn.Sigmoid()
         self.conv2 = nn.Conv2d(32, 4, 1)
@@ -91,9 +125,9 @@ class output(nn.Module):
 class EAST(nn.Module):
     def __init__(self, pretrained=True):
         super(EAST, self).__init__()
-        self.extractor = extractor(pretrained)
-        self.merge     = merge()
-        self.output    = output()
+        self.extractor = DensenetExtractor(pretrained)
+        self.merge = Merger()
+        self.output = Outputer()
     
     def forward(self, x):
         return self.output(self.merge(self.extractor(x)))

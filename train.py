@@ -67,10 +67,10 @@ if __name__ == '__main__':
     train_img_path = "/home/evjeny/data_dir/perimetry_text_detection_split/train_images"
     train_gt_path  = "/home/evjeny/data_dir/perimetry_text_detection_split/train_gts"
     pths_path      = './pths'
-    start_from = "./pths/model_epoch_130.pth"
-    start_from_epoch = 130
-    batch_size     = 8
-    lr             = 1e-4
+    start_from = None
+    start_from_epoch = 0
+    batch_size     = 4
+    lr             = 1e-3
     num_workers    = 8
     epoch_iter     = 600
     save_interval  = 1

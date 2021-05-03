@@ -1,0 +1,64 @@
+2021-05-03 03:51:15,430 [MainThread  ] [INFO ]  begin training
+2021-05-03 03:53:05,976 [MainThread  ] [INFO ]  begin training
+2021-05-03 03:53:27,049 [MainThread  ] [INFO ]  classify loss is 0.91680396, angle loss is 0.64980108, iou loss is 5.86592913
+2021-05-03 03:53:27,794 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [1/1600], time consumption is 1.32521653, batch_loss is 13.28074360
+2021-05-03 03:53:28,018 [MainThread  ] [INFO ]  classify loss is 0.89369595, angle loss is 0.54432160, iou loss is 5.92707443
+2021-05-03 03:53:28,624 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [2/1600], time consumption is 0.82654381, batch_loss is 12.26398659
+2021-05-03 03:53:33,537 [MainThread  ] [INFO ]  classify loss is 0.94024360, angle loss is 0.45666191, iou loss is 5.35030890
+2021-05-03 03:53:34,161 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [3/1600], time consumption is 0.83913827, batch_loss is 10.85717106
+2021-05-03 03:53:34,391 [MainThread  ] [INFO ]  classify loss is 0.90828401, angle loss is 0.30606261, iou loss is 5.45240164
+2021-05-03 03:53:35,013 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [4/1600], time consumption is 0.84918499, batch_loss is 9.42131138
+2021-05-03 03:53:35,226 [MainThread  ] [INFO ]  classify loss is 0.92780387, angle loss is 0.17499697, iou loss is 5.21266127
+2021-05-03 03:53:35,835 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [5/1600], time consumption is 0.81890869, batch_loss is 7.89043522
+2021-05-03 03:53:36,046 [MainThread  ] [INFO ]  classify loss is 0.91661906, angle loss is 0.10973954, iou loss is 4.90868139
+2021-05-03 03:53:36,659 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [6/1600], time consumption is 0.82220697, batch_loss is 6.92269611
+2021-05-03 03:53:36,878 [MainThread  ] [INFO ]  classify loss is 0.94035286, angle loss is 0.25283524, iou loss is 4.71622038
+2021-05-03 03:53:37,490 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [7/1600], time consumption is 0.82815242, batch_loss is 8.18492508
+2021-05-03 03:53:37,702 [MainThread  ] [INFO ]  classify loss is 0.95460391, angle loss is 0.12353899, iou loss is 4.21976423
+2021-05-03 03:53:38,316 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [8/1600], time consumption is 0.82371449, batch_loss is 6.40975857
+2021-05-03 03:53:38,535 [MainThread  ] [INFO ]  classify loss is 0.97279048, angle loss is 0.11284059, iou loss is 3.61539602
+2021-05-03 03:53:39,171 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [9/1600], time consumption is 0.84897852, batch_loss is 5.71659279
+2021-05-03 03:53:39,412 [MainThread  ] [INFO ]  classify loss is 0.98632580, angle loss is 0.08402205, iou loss is 3.25132561
+2021-05-03 03:53:40,057 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [10/1600], time consumption is 0.88257241, batch_loss is 5.07787180
+2021-05-03 03:54:09,005 [MainThread  ] [INFO ]  classify loss is 0.99318957, angle loss is 0.04242082, iou loss is 2.89431596
+2021-05-03 03:54:09,579 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [11/1600], time consumption is 0.77586937, batch_loss is 4.31171370
+2021-05-03 03:54:09,785 [MainThread  ] [INFO ]  classify loss is 0.97352099, angle loss is 0.11703791, iou loss is 2.91576815
+2021-05-03 03:54:10,369 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [12/1600], time consumption is 0.78691125, batch_loss is 5.05966854
+2021-05-03 03:54:10,575 [MainThread  ] [INFO ]  classify loss is 0.99557692, angle loss is 0.08470003, iou loss is 2.60411763
+2021-05-03 03:54:11,173 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [13/1600], time consumption is 0.80179858, batch_loss is 4.44669485
+2021-05-03 03:54:11,397 [MainThread  ] [INFO ]  classify loss is 0.99463600, angle loss is 0.10183381, iou loss is 2.30026984
+2021-05-03 03:54:12,031 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [14/1600], time consumption is 0.85509229, batch_loss is 4.31324387
+2021-05-03 03:54:12,265 [MainThread  ] [INFO ]  classify loss is 0.99522531, angle loss is 0.07808390, iou loss is 2.31607628
+2021-05-03 03:54:12,929 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [15/1600], time consumption is 0.89510608, batch_loss is 4.09214067
+2021-05-03 03:54:13,174 [MainThread  ] [INFO ]  classify loss is 0.99820220, angle loss is 0.11333542, iou loss is 2.11155152
+2021-05-03 03:54:13,812 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [16/1600], time consumption is 0.88050818, batch_loss is 4.24310780
+2021-05-03 03:54:14,100 [MainThread  ] [INFO ]  classify loss is 0.99103248, angle loss is 0.06775657, iou loss is 2.08620620
+2021-05-03 03:54:14,777 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [17/1600], time consumption is 0.96239591, batch_loss is 3.75480461
+2021-05-03 03:54:15,047 [MainThread  ] [INFO ]  classify loss is 0.99229479, angle loss is 0.09039310, iou loss is 1.92792881
+2021-05-03 03:54:15,753 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [18/1600], time consumption is 0.97319651, batch_loss is 3.82415462
+2021-05-03 03:54:16,048 [MainThread  ] [INFO ]  classify loss is 0.99641615, angle loss is 0.02569646, iou loss is 1.82596624
+2021-05-03 03:54:16,708 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [19/1600], time consumption is 0.93775415, batch_loss is 3.07934690
+2021-05-03 03:54:16,929 [MainThread  ] [INFO ]  classify loss is 0.99218011, angle loss is 0.06670404, iou loss is 1.66926873
+2021-05-03 03:54:17,536 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [20/1600], time consumption is 0.82380724, batch_loss is 3.32848930
+2021-05-03 03:54:17,747 [MainThread  ] [INFO ]  classify loss is 0.99773240, angle loss is 0.06095597, iou loss is 1.51844645
+2021-05-03 03:54:18,362 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [21/1600], time consumption is 0.82416248, batch_loss is 3.12573862
+2021-05-03 03:54:18,596 [MainThread  ] [INFO ]  classify loss is 0.98829615, angle loss is 0.06586546, iou loss is 1.83577394
+2021-05-03 03:54:19,226 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [22/1600], time consumption is 0.86173344, batch_loss is 3.48272467
+2021-05-03 03:54:19,457 [MainThread  ] [INFO ]  classify loss is 0.99218857, angle loss is 0.08633262, iou loss is 1.36881101
+2021-05-03 03:54:20,076 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [23/1600], time consumption is 0.84668541, batch_loss is 3.22432566
+2021-05-03 03:54:20,313 [MainThread  ] [INFO ]  classify loss is 0.99272013, angle loss is 0.12168157, iou loss is 1.37909877
+2021-05-03 03:54:20,953 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [24/1600], time consumption is 0.87463760, batch_loss is 3.58863449
+2021-05-03 03:54:21,183 [MainThread  ] [INFO ]  classify loss is 0.99011487, angle loss is 0.06432509, iou loss is 1.58850145
+2021-05-03 03:54:21,805 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [25/1600], time consumption is 0.84976530, batch_loss is 3.22186732
+2021-05-03 03:54:22,027 [MainThread  ] [INFO ]  classify loss is 0.99368113, angle loss is 0.17143972, iou loss is 1.34306204
+2021-05-03 03:54:22,644 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [26/1600], time consumption is 0.83522725, batch_loss is 4.05114031
+2021-05-03 03:54:22,890 [MainThread  ] [INFO ]  classify loss is 0.99348307, angle loss is 0.08099535, iou loss is 1.27858007
+2021-05-03 03:54:23,506 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [27/1600], time consumption is 0.83337784, batch_loss is 3.08201671
+2021-05-03 03:54:27,964 [MainThread  ] [INFO ]  classify loss is 0.99389482, angle loss is 0.03880079, iou loss is 1.21270597
+2021-05-03 03:54:28,579 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [28/1600], time consumption is 0.83357954, batch_loss is 2.59460878
+2021-05-03 03:54:28,790 [MainThread  ] [INFO ]  classify loss is 0.99493909, angle loss is 0.08971441, iou loss is 1.02432299
+2021-05-03 03:54:29,393 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [29/1600], time consumption is 0.81181264, batch_loss is 2.91640615
+2021-05-03 03:54:29,611 [MainThread  ] [INFO ]  classify loss is 0.98782814, angle loss is 0.17752425, iou loss is 1.30339515
+2021-05-03 03:54:30,231 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [30/1600], time consumption is 0.83459949, batch_loss is 4.06646585
+2021-05-03 03:54:30,460 [MainThread  ] [INFO ]  classify loss is 0.99568951, angle loss is 0.02020255, iou loss is 1.02711630
+2021-05-03 03:54:31,118 [MainThread  ] [INFO ]  Epoch is [1/600], mini-batch is [31/1600], time consumption is 0.88433838, batch_loss is 2.22483110
