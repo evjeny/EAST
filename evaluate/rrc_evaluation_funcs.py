@@ -72,7 +72,7 @@ def load_zip_file(file,fileNameRegExp='',allEntries=False):
                 raise Exception('ZIP entry not valid: %s' %name)             
 
     return dict(pairs)
-	
+    
 def decode_utf8(raw):
     """
     Returns a Unicode object on success, or None on failure
