@@ -8,12 +8,12 @@ import numpy as np
 import shutil
 
 
-def eval_model(model_name, test_img_path, submit_path, save_flag=True):
+def eval_model(model_name, test_img_path, submit_path, save_flag=True, device="cuda"):
 	if os.path.exists(submit_path):
 		shutil.rmtree(submit_path) 
 	os.mkdir(submit_path)
 
-	device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+	device = torch.device(device)
 	model = EAST(False).to(device)
 	model.load_state_dict(torch.load(model_name))
 	model.eval()
@@ -34,7 +34,7 @@ def eval_model(model_name, test_img_path, submit_path, save_flag=True):
 
 
 if __name__ == '__main__': 
-	model_name = './pths/east_vgg16.pth'
+	model_name = './pths/model_epoch_131.pth'
 	test_img_path = os.path.abspath('../ICDAR_2015/test_img')
 	submit_path = './submit'
-	eval_model(model_name, test_img_path, submit_path)
+	eval_model(model_name, test_img_path, submit_path, device="cpu")

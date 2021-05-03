@@ -64,14 +64,14 @@ def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers,
 		scheduler.step()
 
 if __name__ == '__main__':
-	train_img_path = "/big_disk/evjeny/data/generated_perimetry_images_big"
-	train_gt_path  = "/big_disk/evjeny/data/generated_perimetry_labels_big"
+	train_img_path = "/home/evjeny/data_dir/perimetry_text_detection_split/train_images"
+	train_gt_path  = "/home/evjeny/data_dir/perimetry_text_detection_split/train_gts"
 	pths_path      = './pths'
-	start_from = "./pths/model_small_dataset_last.pth"
-	start_from_epoch = 1
-	batch_size     = 6
-	lr             = 1e-3
-	num_workers    = 4
+	start_from = "./pths/model_epoch_130.pth"
+	start_from_epoch = 130
+	batch_size     = 8
+	lr             = 1e-4
+	num_workers    = 8
 	epoch_iter     = 600
 	save_interval  = 1
 	

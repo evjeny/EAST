@@ -184,7 +184,7 @@ def detect_dataset(model, device, test_img_path, submit_path):
 
 
 if __name__ == '__main__':
-	model_path  = './pths/model_epoch_208.pth'
+	model_path  = './pths/model_epoch_132.pth'
 	device = torch.device("cpu")
 	model = EAST().to(device)
 	model.load_state_dict(torch.load(model_path, map_location=device))
@@ -193,10 +193,10 @@ if __name__ == '__main__':
 	resize_to_big = False
 	result_dir = "result"
 	os.makedirs(result_dir, exist_ok=True)
-	image_nums = list(range(0, 10))
 	t0 = time.time()
+	image_nums = [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000]
 	for image_num in image_nums:
-		img_path = '/big_disk/evjeny/data/perimetry_cut_circles/{}.jpg'.format(image_num)
+		img_path = '/home/evjeny/data_dir/perimetry_text_detection/images/{}.jpg'.format(image_num)
 		img = Image.open(img_path)
 		if resize_to_big:
 			img = img.resize((960, 960))
