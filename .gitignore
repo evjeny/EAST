@@ -131,5 +131,9 @@ dmypy.json
 # model weights
 pths/*
 
+# train stuffs
+log_train.txt
+
+# ide stuffs
 .vscode
 
