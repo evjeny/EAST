@@ -9,46 +9,43 @@ class ResnetExtractor(nn.Module):
     def __init__(self, pretrained=True):
         super(ResnetExtractor, self).__init__()
         self.features = torch.hub.load("pytorch/vision:v0.8.0", "resnet34", pretrained=pretrained)
-        self.conv1 = nn.Conv2d(64, 128, 1)
-        self.conv2 = nn.Conv2d(128, 256, 1)
-        self.conv3 = nn.Conv2d(256, 512, 1)
-        self.conv4 = nn.Identity()
 
     def forward(self, x):
         x = self.features.bn1(self.features.conv1(x))
         x = self.features.maxpool(self.features.relu(x))
         
-        x = self.features.layer1(x)
-        x1 = self.conv1(x)
-        x = self.features.layer2(x)
-        x2 = self.conv2(x)
-        x = self.features.layer3(x)
-        x3 = self.conv3(x)
-        x = self.features.layer4(x)
-        x4 = self.conv4(x)
+        out = []
+        x = self.features.layer1(x) # 64, s/4, s/4
+        out.append(x)
+        x = self.features.layer2(x) # 128, s/8, s/8
+        out.append(x)
+        x = self.features.layer3(x) # 256, s/16, s/16
+        out.append(x)
+        x = self.features.layer4(x) # 512, s/32, s/32
+        out.append(x)
         
-        return [x1, x2, x3, x4]
+        return out
 
 
 class Merger(nn.Module):
     def __init__(self):
         super(Merger, self).__init__()
 
-        self.conv1 = nn.Conv2d(1024, 128, 1)
+        self.conv1 = nn.Conv2d(768, 128, 1)
         self.bn1 = nn.BatchNorm2d(128)
         self.relu1 = nn.ReLU()
         self.conv2 = nn.Conv2d(128, 128, 3, padding=1)
         self.bn2 = nn.BatchNorm2d(128)
         self.relu2 = nn.ReLU()
 
-        self.conv3 = nn.Conv2d(384, 64, 1)
+        self.conv3 = nn.Conv2d(256, 64, 1)
         self.bn3 = nn.BatchNorm2d(64)
         self.relu3 = nn.ReLU()
         self.conv4 = nn.Conv2d(64, 64, 3, padding=1)
         self.bn4 = nn.BatchNorm2d(64)
         self.relu4 = nn.ReLU()
 
-        self.conv5 = nn.Conv2d(192, 32, 1)
+        self.conv5 = nn.Conv2d(128, 32, 1)
         self.bn5 = nn.BatchNorm2d(32)
         self.relu5 = nn.ReLU()
         self.conv6 = nn.Conv2d(32, 32, 3, padding=1)
@@ -71,16 +68,19 @@ class Merger(nn.Module):
     def forward(self, x):
         y = F.interpolate(x[3], scale_factor=2, mode='bilinear', align_corners=True)
         y = torch.cat((y, x[2]), 1)
+        # 512 + 256
         y = self.relu1(self.bn1(self.conv1(y)))        
         y = self.relu2(self.bn2(self.conv2(y)))
         
         y = F.interpolate(y, scale_factor=2, mode='bilinear', align_corners=True)
         y = torch.cat((y, x[1]), 1)
+        # 128 + 128
         y = self.relu3(self.bn3(self.conv3(y)))        
         y = self.relu4(self.bn4(self.conv4(y)))
         
         y = F.interpolate(y, scale_factor=2, mode='bilinear', align_corners=True)
         y = torch.cat((y, x[0]), 1)
+        # 64 + 64
         y = self.relu5(self.bn5(self.conv5(y)))        
         y = self.relu6(self.bn6(self.conv6(y)))
         
@@ -88,7 +88,7 @@ class Merger(nn.Module):
         return y
 
 class Outputer(nn.Module):
-    def __init__(self, scope=512):
+    def __init__(self):
         super(Outputer, self).__init__()
         self.conv1 = nn.Conv2d(32, 1, 1)
         self.sigmoid1 = nn.Sigmoid()
@@ -96,16 +96,15 @@ class Outputer(nn.Module):
         self.sigmoid2 = nn.Sigmoid()
         self.conv3 = nn.Conv2d(32, 1, 1)
         self.sigmoid3 = nn.Sigmoid()
-        self.scope = 512
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
 
-    def forward(self, x):
+    def forward(self, x, scope=512):
         score = self.sigmoid1(self.conv1(x))
-        loc   = self.sigmoid2(self.conv2(x)) * self.scope
+        loc   = self.sigmoid2(self.conv2(x)) * scope
         angle = (self.sigmoid3(self.conv3(x)) - 0.5) * math.pi
         geo   = torch.cat((loc, angle), 1) 
         return score, geo
@@ -118,8 +117,8 @@ class EAST(nn.Module):
         self.merge = Merger()
         self.output = Outputer()
     
-    def forward(self, x):
-        return self.output(self.merge(self.extractor(x)))
+    def forward(self, x, scope=512):
+        return self.output(self.merge(self.extractor(x)), scope)
         
 
 if __name__ == '__main__':
