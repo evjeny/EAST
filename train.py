@@ -11,13 +11,13 @@ import logging
 import numpy as np
 
 
-def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers, epoch_iter, interval, logger, start_from=None, start_from_epoch=0):
-    logger.info(f"begin training with: batch_size = {batch_size}, lr = {lr}, start_from_epoch = {start_from_epoch}, start_from = {start_from}")
+def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers, epoch_iter, interval, logger, start_from=None, start_from_epoch=0, scope=256):
+    logger.info(f"begin training with: batch_size = {batch_size}, lr = {lr}, start_from_epoch = {start_from_epoch}, start_from = {start_from}, scope = {scope}")
     
     file_num = len(os.listdir(train_img_path))
-    trainset = CustomDataset(train_img_path, train_gt_path)
-    train_loader = data.DataLoader(trainset, batch_size=batch_size, \
-                                   shuffle=True, num_workers=num_workers, drop_last=True)
+    trainset = CustomDataset(train_img_path, train_gt_path, length=scope)
+    train_loader = data.DataLoader(trainset, batch_size=batch_size, shuffle=True,
+                                   num_workers=num_workers, prefetch_factor=4)
     
     criterion = Loss(logger)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -44,7 +44,7 @@ def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers,
         for i, (img, gt_score, gt_geo, ignored_map) in enumerate(train_loader):
             start_time = time.time()
             img, gt_score, gt_geo, ignored_map = img.to(device), gt_score.to(device), gt_geo.to(device), ignored_map.to(device)
-            pred_score, pred_geo = model(img)
+            pred_score, pred_geo = model(img, scope=scope)
             loss = criterion(gt_score, pred_score, gt_geo, pred_geo, ignored_map)
             
             epoch_loss += loss.item()
@@ -64,14 +64,14 @@ def train(train_img_path, train_gt_path, pths_path, batch_size, lr, num_workers,
         scheduler.step()
 
 if __name__ == '__main__':
-    train_img_path = "/home/evjeny/data_dir/perimetry_text_detection_split/train_images"
-    train_gt_path  = "/home/evjeny/data_dir/perimetry_text_detection_split/train_gts"
+    train_img_path = "/mnt/ramdisk/perimetry_text_detection_split/train_images"
+    train_gt_path  = "/mnt/ramdisk/perimetry_text_detection_split/train_gts"
     pths_path      = './pths'
     start_from = None
     start_from_epoch = 0
-    batch_size     = 6
+    batch_size     = 8
     lr             = 1e-3
-    num_workers    = 8
+    num_workers    = 16
     epoch_iter     = 600
     save_interval  = 1
     

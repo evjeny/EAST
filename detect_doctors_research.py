@@ -184,25 +184,29 @@ def detect_dataset(model, device, test_img_path, submit_path):
 
 
 if __name__ == '__main__':
-    model_path  = './pths/model_epoch_25.pth'
+    model_path  = './pths/model_epoch_53.pth'
     device = torch.device("cpu")
     model = EAST().to(device)
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
     
+    base_folder = "/home/evjeny/data_dir/doctors_research_base/images"
+    save_folder = "/home/evjeny/workspace/tonometry_notebooks/DB_results/east_result/doctors_research"
+    
     resize_to_big = False
-    result_dir = "result"
-    os.makedirs(result_dir, exist_ok=True)
+    os.makedirs(save_folder, exist_ok=True)
     t0 = time.time()
-    image_nums = [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000]
-    for image_num in image_nums:
-        img_path = '/home/evjeny/data_dir/perimetry_text_detection/images/{}.jpg'.format(image_num)
+    n = 0
+    for name in os.listdir(base_folder):
+        img_path = base_folder + "/" + name
+        save_img_path = save_folder + "/" + name
         img = Image.open(img_path)
         if resize_to_big:
             img = img.resize((960, 960))
         boxes = detect(img, model, device)
         plot_img = plot_boxes(img, boxes)
-        plot_img.save(os.path.join(result_dir, "result_{}.jpg".format(image_num)))
+        plot_img.save(save_img_path)
+        n += 1
     t1 = time.time()
-    print((t1-t0)/len(image_nums), "s for sample") 
+    print((t1-t0)/n, "s for sample") 
 
