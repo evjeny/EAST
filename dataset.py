@@ -4,6 +4,10 @@ import cv2
 from PIL import Image
 import math
 import os
+from contextlib import closing
+import multiprocessing as mp
+import itertools
+import tqdm
 import torch
 import torchvision.transforms as transforms
 from torch.utils import data
@@ -136,6 +140,7 @@ def find_min_rect_angle(vertices):
     Output:
         the best angle <radian measure>
     '''
+    # TODO: fix time consumption
     angle_interval = 1
     angle_list = list(range(-90, 90, angle_interval))
     area_list = []
@@ -169,6 +174,7 @@ def is_cross_text(start_loc, length, vertices):
     Output:
         True if crop image crosses text region
     '''
+    # TODO: fix time consumption
     if vertices.size == 0:
         return False
     start_w, start_h = start_loc
@@ -305,6 +311,7 @@ def get_score_geo(img, vertices, labels, scale, length):
     Output:
         score gt, geo gt, ignored
     '''
+    # TODO: fix time consumption
     score_map   = np.zeros((int(img.height * scale), int(img.width * scale), 1), np.float32)
     geo_map     = np.zeros((int(img.height * scale), int(img.width * scale), 5), np.float32)
     ignored_map = np.zeros((int(img.height * scale), int(img.width * scale), 1), np.float32)
@@ -347,6 +354,7 @@ def get_score_geo(img, vertices, labels, scale, length):
     
     cv2.fillPoly(ignored_map, ignored_polys, 1)
     cv2.fillPoly(score_map, polys, 1)
+    
     return torch.Tensor(score_map).permute(2,0,1), torch.Tensor(geo_map).permute(2,0,1), torch.Tensor(ignored_map).permute(2,0,1)
 
 
@@ -366,31 +374,124 @@ def extract_vertices(lines):
         labels.append(label)
     return np.array(vertices), np.array(labels)
 
+
+def load_sample(image_path, gt_path, length, scale):
+    with open(gt_path, 'r') as f:
+            lines = f.readlines()
+    vertices, labels = extract_vertices(lines)
+    
+    img = Image.open(image_path)
+    img, vertices = adjust_height(img, vertices) 
+    img, vertices = rotate_img(img, vertices)
+    img, vertices = crop_img(img, vertices, labels, length) 
+    
+    score_map, geo_map, ignored_map = get_score_geo(img, vertices, labels, scale, length)
+    
+    transform = transforms.Compose([transforms.ColorJitter(0.5, 0.5, 0.5, 0.25),
+                                    transforms.ToTensor(),
+                                    transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
+    
+    tensor_image = transform(img)
+    img.close()
+    
+    return tensor_image, score_map, geo_map, ignored_map
+
+
+def make_global_shared_arrays(imgs_arr_, score_arr_, geo_arr_, ignored_arr_):
+    global imgs_arr, score_arr, geo_arr, ignored_arr
+    
+    imgs_arr = imgs_arr_
+    score_arr = score_arr_
+    geo_arr = geo_arr_
+    ignored_arr = ignored_arr_
+
+
+def shared_array_to_torch(shared_arr, shape):
+    return torch.from_numpy(np.frombuffer(shared_arr, dtype=np.float32).reshape(shape))
+
+
+def create_shared_array(shape):   
+    shared_arr = mp.RawArray("f", int(np.prod(shape)))
+    return shared_arr, shape
+
+
+def load_sample_shared(args):
+    global imgs_arr, score_arr, geo_arr, ignored_arr
+    
+    index, image_path, gt_path, length, scale = args
+    
+    imgs_arr_torch = shared_array_to_torch(*imgs_arr)
+    score_arr_torch = shared_array_to_torch(*score_arr)
+    geo_arr_torch = shared_array_to_torch(*geo_arr)
+    ignored_arr_torch = shared_array_to_torch(*ignored_arr)
+    
+    img, score, geo, ignored = load_sample(image_path, gt_path, length, scale)
+    
+    imgs_arr_torch[index] = img
+    score_arr_torch[index] = score
+    geo_arr_torch[index] = geo
+    ignored_arr_torch[index] = ignored
+
     
 class CustomDataset(data.Dataset):
-    def __init__(self, img_path, gt_path, scale=0.25, length=512):
+    def __init__(self, img_path, gt_path, scale=0.25, length=512,
+                 min_image_size=300, max_image_size=1000):
         super(CustomDataset, self).__init__()
-        self.img_files = [os.path.join(img_path, img_file) for img_file in sorted(os.listdir(img_path)) if img_file.endswith(".jpg")]
-        self.gt_files  = [os.path.join(gt_path, gt_file) for gt_file in sorted(os.listdir(gt_path)) if gt_file.endswith(".txt")]
+        img_files = [os.path.join(img_path, img_file) for img_file in sorted(os.listdir(img_path)) if img_file.endswith(".jpg")]
+        gt_files  = [os.path.join(gt_path, gt_file) for gt_file in sorted(os.listdir(gt_path)) if gt_file.endswith(".txt")]
+        
+        allowed_indices = []
+        for index in range(len(img_files)):
+            width, height = Image.open(img_files[index]).size
+            if min_image_size <= min(width, height) and max(width, height) <= max_image_size:
+                allowed_indices.append(index)
+        
+        self.img_files = [img_files[index] for index in allowed_indices]
+        self.gt_files = [gt_files[index] for index in allowed_indices]
+        
         self.scale = scale
         self.length = length
+        self.preloaded = False
+    
+    def preload_data(self):
+        n = len(self.img_files)
+        
+        side = int(self.length * self.scale)
+        imgs_shared = create_shared_array((n, 3, self.length, self.length))
+        print("created images SA")
+        score_shared = create_shared_array((n, 1, side, side))
+        print("created score SA")
+        geo_shared = create_shared_array((n, 5, side, side))
+        print("created geo SA")
+        ignored_shared = create_shared_array((n, 1, side, side))
+        print("created ignored SA")
+        
+        args = zip(
+            range(n),
+            self.img_files,
+            self.gt_files,
+            itertools.repeat(self.length, n),
+            itertools.repeat(self.scale, n)
+        )
+        with mp.Pool(mp.cpu_count(), initializer=make_global_shared_arrays,
+                     initargs=(imgs_shared, score_shared, geo_shared, ignored_shared)) as pool:
+            with tqdm.tqdm(total=n) as pbar:
+                for _ in enumerate(pool.imap_unordered(load_sample_shared, args)):
+                    pbar.update()
+        
+        self.imgs = shared_array_to_torch(*imgs_shared)
+        self.score_maps = shared_array_to_torch(*score_shared)
+        self.geo_maps = shared_array_to_torch(*geo_shared)
+        self.ignored_maps = shared_array_to_torch(*ignored_shared)
+        
+        self.preloaded = True
 
     def __len__(self):
         return len(self.img_files)
 
     def __getitem__(self, index):
-        with open(self.gt_files[index], 'r') as f:
-            lines = f.readlines()
-        vertices, labels = extract_vertices(lines)
-        
-        img = Image.open(self.img_files[index])
-        img, vertices = adjust_height(img, vertices) 
-        img, vertices = rotate_img(img, vertices)
-        img, vertices = crop_img(img, vertices, labels, self.length) 
-        transform = transforms.Compose([transforms.ColorJitter(0.5, 0.5, 0.5, 0.25), \
-                                        transforms.ToTensor(), \
-                                        transforms.Normalize(mean=(0.5,0.5,0.5),std=(0.5,0.5,0.5))])
-        
-        score_map, geo_map, ignored_map = get_score_geo(img, vertices, labels, self.scale, self.length)
-        return transform(img), score_map, geo_map, ignored_map
+        if self.preloaded:
+            return self.imgs[index], self.score_maps[index], self.geo_maps[index], self.ignored_maps[index]
+
+        return load_sample(self.img_files[index], self.gt_files[index], self.length, self.scale)
 

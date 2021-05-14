@@ -6,6 +6,7 @@ import time
 from PIL import Image, ImageDraw
 from model import EAST
 import os
+from tqdm import tqdm
 from dataset import get_rotate_mat
 import numpy as np
 import lanms
@@ -184,8 +185,8 @@ def detect_dataset(model, device, test_img_path, submit_path):
 
 
 if __name__ == '__main__':
-    model_path  = './pths/model_epoch_53.pth'
-    device = torch.device("cpu")
+    model_path  = './pths/model_epoch_15.pth'
+    device = torch.device("cuda")
     model = EAST().to(device)
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.eval()
@@ -197,7 +198,7 @@ if __name__ == '__main__':
     os.makedirs(save_folder, exist_ok=True)
     t0 = time.time()
     n = 0
-    for name in os.listdir(base_folder):
+    for name in tqdm(os.listdir(base_folder)):
         img_path = base_folder + "/" + name
         save_img_path = save_folder + "/" + name
         img = Image.open(img_path)
