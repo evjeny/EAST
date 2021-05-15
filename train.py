@@ -15,7 +15,8 @@ from loss import Loss
 def train(train_img_path, train_gt_path, pths_path, scopes, lr,
           num_workers, epoch_iter, interval, logger, start_from=None,
           start_from_epoch=0, preload_data=False):
-    logger.info(f"begin training with: scopes = {scopes}, lr = {lr}, start_from_epoch = {start_from_epoch}, start_from = {start_from}, preload_data = {preload_data}")
+    logger.info(f"begin training with: scopes = {scopes}, lr = {lr}, start_from_epoch = {start_from_epoch}, " +
+                f"start_from = {start_from}, preload_data = {preload_data}, epochs = {epoch_iter}")
     
     if scopes is None:
         scopes = [{"scope": 256, "batch_size": 8, "min": 200, "max": 1000}]

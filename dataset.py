@@ -458,8 +458,8 @@ class CustomDataset(data.Dataset):
             if min_image_size <= min(width, height) and max(width, height) <= max_image_size:
                 allowed_indices.append(index)
         
-        self.img_files = [img_files[index] for index in allowed_indices][:10]
-        self.gt_files = [gt_files[index] for index in allowed_indices][:10]
+        self.img_files = [img_files[index] for index in allowed_indices]
+        self.gt_files = [gt_files[index] for index in allowed_indices]
         
         self.scale = scale
         self.length = length
