@@ -13,6 +13,14 @@ import torchvision.transforms as transforms
 from torch.utils import data
 
 
+image_transform = transforms.Compose([
+    transforms.ToTensor(), transforms.ColorJitter(0.5, 0.5, 0.5, 0.25),
+    transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
+])
+
+shared_count = 0
+
+
 def cal_distance(x1, y1, x2, y2):
     '''calculate the Euclidean distance'''
     return math.sqrt((x1 - x2)**2 + (y1 - y2)**2)
@@ -375,7 +383,7 @@ def extract_vertices(lines):
     return np.array(vertices), np.array(labels)
 
 
-def load_sample(image_path, gt_path, length, scale):
+def load_sample(image_path, gt_path, length, scale, lock=None):
     with open(gt_path, 'r') as f:
             lines = f.readlines()
     vertices, labels = extract_vertices(lines)
@@ -383,27 +391,16 @@ def load_sample(image_path, gt_path, length, scale):
     img = Image.open(image_path)
     img, vertices = adjust_height(img, vertices) 
     img, vertices = rotate_img(img, vertices)
-    img, vertices = crop_img(img, vertices, labels, length) 
+    img, vertices = crop_img(img, vertices, labels, length)
     
     score_map, geo_map, ignored_map = get_score_geo(img, vertices, labels, scale, length)
     
-    transform = transforms.Compose([transforms.ColorJitter(0.5, 0.5, 0.5, 0.25),
-                                    transforms.ToTensor(),
-                                    transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))])
-    
-    tensor_image = transform(img)
-    img.close()
+    global image_transform
+    # TODO: fix 2nd unnappliable transformation
+    # tensor_image = image_transform(img)
+    tensor_image = torch.from_numpy(np.array(img)).permute(2, 0, 1)
     
     return tensor_image, score_map, geo_map, ignored_map
-
-
-def make_global_shared_arrays(imgs_arr_, score_arr_, geo_arr_, ignored_arr_):
-    global imgs_arr, score_arr, geo_arr, ignored_arr
-    
-    imgs_arr = imgs_arr_
-    score_arr = score_arr_
-    geo_arr = geo_arr_
-    ignored_arr = ignored_arr_
 
 
 def shared_array_to_torch(shared_arr, shape):
@@ -415,15 +412,30 @@ def create_shared_array(shape):
     return shared_arr, shape
 
 
+def init_shared_memory(n, length, scale):
+    global shared_count
+    
+    side = int(length * scale)
+    
+    globals()[f"imgs_shared_{shared_count}"] = create_shared_array((n, 3, length, length))
+    globals()[f"score_shared_{shared_count}"] = create_shared_array((n, 1, side, side))
+    globals()[f"geo_shared_{shared_count}"] = create_shared_array((n, 5, side, side))
+    globals()[f"ignored_shared_{shared_count}"] = create_shared_array((n, 1, side, side))
+    
+    shared_count += 1
+    
+    return shared_count - 1
+
+
 def load_sample_shared(args):
-    global imgs_arr, score_arr, geo_arr, ignored_arr
+    global imgs_shared, score_shared, geo_shared, ignored_shared
     
-    index, image_path, gt_path, length, scale = args
+    index, image_path, gt_path, length, scale, shared_index = args
     
-    imgs_arr_torch = shared_array_to_torch(*imgs_arr)
-    score_arr_torch = shared_array_to_torch(*score_arr)
-    geo_arr_torch = shared_array_to_torch(*geo_arr)
-    ignored_arr_torch = shared_array_to_torch(*ignored_arr)
+    imgs_arr_torch = shared_array_to_torch(*globals()[f"imgs_shared_{shared_index}"])
+    score_arr_torch = shared_array_to_torch(*globals()[f"score_shared_{shared_index}"])
+    geo_arr_torch = shared_array_to_torch(*globals()[f"geo_shared_{shared_index}"])
+    ignored_arr_torch = shared_array_to_torch(*globals()[f"ignored_shared_{shared_index}"])
     
     img, score, geo, ignored = load_sample(image_path, gt_path, length, scale)
     
@@ -446,52 +458,52 @@ class CustomDataset(data.Dataset):
             if min_image_size <= min(width, height) and max(width, height) <= max_image_size:
                 allowed_indices.append(index)
         
-        self.img_files = [img_files[index] for index in allowed_indices]
-        self.gt_files = [gt_files[index] for index in allowed_indices]
+        self.img_files = [img_files[index] for index in allowed_indices][:10]
+        self.gt_files = [gt_files[index] for index in allowed_indices][:10]
         
         self.scale = scale
         self.length = length
         self.preloaded = False
     
+    def init_sa(self):
+        self.shared_index = init_shared_memory(len(self.img_files), self.length, self.scale)
+        
+        self.imgs = shared_array_to_torch(*globals()[f"imgs_shared_{self.shared_index}"])
+        self.score_maps = shared_array_to_torch(*globals()[f"score_shared_{self.shared_index}"])
+        self.geo_maps = shared_array_to_torch(*globals()[f"geo_shared_{self.shared_index}"])
+        self.ignored_maps = shared_array_to_torch(*globals()[f"ignored_shared_{self.shared_index}"])
+        print("created shared memory")
+    
     def preload_data(self):
         n = len(self.img_files)
-        
-        side = int(self.length * self.scale)
-        imgs_shared = create_shared_array((n, 3, self.length, self.length))
-        print("created images SA")
-        score_shared = create_shared_array((n, 1, side, side))
-        print("created score SA")
-        geo_shared = create_shared_array((n, 5, side, side))
-        print("created geo SA")
-        ignored_shared = create_shared_array((n, 1, side, side))
-        print("created ignored SA")
         
         args = zip(
             range(n),
             self.img_files,
             self.gt_files,
             itertools.repeat(self.length, n),
-            itertools.repeat(self.scale, n)
+            itertools.repeat(self.scale, n),
+            itertools.repeat(self.shared_index, n)
         )
-        with mp.Pool(mp.cpu_count(), initializer=make_global_shared_arrays,
-                     initargs=(imgs_shared, score_shared, geo_shared, ignored_shared)) as pool:
+        with mp.Pool(mp.cpu_count()) as pool:
             with tqdm.tqdm(total=n) as pbar:
                 for _ in enumerate(pool.imap_unordered(load_sample_shared, args)):
                     pbar.update()
         
-        self.imgs = shared_array_to_torch(*imgs_shared)
-        self.score_maps = shared_array_to_torch(*score_shared)
-        self.geo_maps = shared_array_to_torch(*geo_shared)
-        self.ignored_maps = shared_array_to_torch(*ignored_shared)
-        
         self.preloaded = True
+    
+    def reset_shared_memory(self):
+        self.preloaded = False
 
     def __len__(self):
         return len(self.img_files)
 
     def __getitem__(self, index):
         if self.preloaded:
-            return self.imgs[index], self.score_maps[index], self.geo_maps[index], self.ignored_maps[index]
+            return (self.imgs[index].detach().clone(),
+                    self.score_maps[index].detach().clone(),
+                    self.geo_maps[index].detach().clone(),
+                    self.ignored_maps[index].detach().clone())
 
         return load_sample(self.img_files[index], self.gt_files[index], self.length, self.scale)
 

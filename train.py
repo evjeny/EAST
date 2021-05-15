@@ -1,6 +1,7 @@
 import torch
 from torch.utils import data
 from torch import nn
+import torchvision.transforms as transforms
 from torch.optim import lr_scheduler
 from dataset import CustomDataset
 from model import EAST
@@ -12,7 +13,7 @@ import numpy as np
 
 
 def train(train_img_path, train_gt_path, pths_path, scopes, lr,
-          num_workers, prefetch_count, epoch_iter, interval, logger, start_from=None,
+          num_workers, epoch_iter, interval, logger, start_from=None,
           start_from_epoch=0, preload_data=False):
     logger.info(f"begin training with: scopes = {scopes}, lr = {lr}, start_from_epoch = {start_from_epoch}, start_from = {start_from}, preload_data = {preload_data}")
     
@@ -22,15 +23,13 @@ def train(train_img_path, train_gt_path, pths_path, scopes, lr,
     datasets = []
     train_loaders = []
     for scope_data in scopes:
-        train_dataset = CustomDataset(train_img_path, train_gt_path, length=scope_data["scope"],
-                                      min_image_size=scope_data["min"], max_image_size=scope_data["max"])
+        datasets.append(CustomDataset(train_img_path, train_gt_path, length=scope_data["scope"],
+                                      min_image_size=scope_data["min"], max_image_size=scope_data["max"]))
         if preload_data:
-            train_dataset.preload_data()
-        train_loader = data.DataLoader(train_dataset, batch_size=scope_data["batch_size"], shuffle=True,
-                                       num_workers=num_workers, prefetch_factor=prefetch_count)
-        
-        datasets.append(train_dataset)
-        train_loaders.append(train_loader)
+            datasets[-1].init_sa()
+            datasets[-1].preload_data()
+        train_loaders.append(data.DataLoader(datasets[-1], batch_size=scope_data["batch_size"], shuffle=True,
+                                             num_workers=num_workers))
 
     logger.info("prepared datasets")
     
@@ -95,12 +94,11 @@ if __name__ == '__main__':
     train_gt_path = "/mnt/ramdisk/perimetry_text_detection_split/train_gts"
     pths_path = './pths'
     start_from = None
-    start_from_epoch = 15
+    start_from_epoch = 0
     scopes = [{"scope": 512, "batch_size": 6, "min": 500, "max": 1000},
               {"scope": 256, "batch_size": 8, "min": 200, "max": 300}]
-    lr = 3e-4
-    num_workers = 8
-    prefetch_count = 1
+    lr = 1e-3
+    num_workers = 0
     preload_data = True
     epoch_iter = 600
     save_interval = 1
@@ -118,5 +116,5 @@ if __name__ == '__main__':
     rootLogger.addHandler(consoleHandler)
     
     train(train_img_path, train_gt_path, pths_path, scopes, lr, num_workers,
-          prefetch_count, epoch_iter, save_interval, rootLogger, start_from,
+          epoch_iter, save_interval, rootLogger, start_from,
           start_from_epoch, preload_data)
