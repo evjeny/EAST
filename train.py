@@ -1,15 +1,15 @@
-import torch
-from torch.utils import data
-from torch import nn
-import torchvision.transforms as transforms
-from torch.optim import lr_scheduler
-from dataset import CustomDataset
-from model import EAST
-from loss import Loss
+import argparse
 import os
 import time
 import logging
-import numpy as np
+
+import torch
+from torch.utils import data
+from torch.optim import lr_scheduler
+
+from dataset import CustomDataset
+from model import EAST
+from loss import Loss
 
 
 def train(train_img_path, train_gt_path, pths_path, scopes, lr,
@@ -90,24 +90,28 @@ def train(train_img_path, train_gt_path, pths_path, scopes, lr,
         scheduler.step()
 
 if __name__ == '__main__':
-    train_img_path = "/mnt/ramdisk/perimetry_text_detection_split/train_images"
-    train_gt_path = "/mnt/ramdisk/perimetry_text_detection_split/train_gts"
-    pths_path = './pths'
-    start_from = None
-    start_from_epoch = 0
+    parser = argparse.ArgumentParser(description="EAST trainer")
+    parser.add_argument("--images_path", type=str,default="/mnt/ramdisk/perimetry_text_detection_split/train_images", help="path to images")
+    parser.add_argument("--gts_path", type=str, default="/mnt/ramdisk/perimetry_text_detection_split/train_gts", help="path to ground truths")
+    parser.add_argument("--save_path", type=str, default="./pths", help="path to save weights")
+    parser.add_argument("--start_from", type=str, default=None, help="start from weights file")
+    parser.add_argument("--start_from_epoch", type=int, default=0, help="start from epoch num")
+    parser.add_argument("--lr", type=float, default=1e-3, help="learning rate")
+    parser.add_argument("--num_workers", type=int, default=0, help="num of workers for data loader")
+    parser.add_argument("--epochs", type=int, default=600, help="epochs count")
+    parser.add_argument("--preload_data", type=bool, default=False, help="whether to preload data or not")
+    parser.add_argument("--save_interval", type=int, default=1, help="weights save interval (in epochs)")
+    parser.add_argument("--log_file", type=str, default="log_train.txt", help="file to save logs")
+    args = parser.parse_args()
+    
     scopes = [{"scope": 512, "batch_size": 6, "min": 500, "max": 1000},
               {"scope": 256, "batch_size": 8, "min": 200, "max": 300}]
-    lr = 1e-3
-    num_workers = 0
-    preload_data = True
-    epoch_iter = 600
-    save_interval = 1
     
     logFormatter = logging.Formatter("%(asctime)s [%(threadName)-12.12s] [%(levelname)-5.5s]  %(message)s")
     rootLogger = logging.getLogger()
     rootLogger.setLevel(logging.INFO)
 
-    fileHandler = logging.FileHandler("log_train.txt")
+    fileHandler = logging.FileHandler(args.log_file)
     fileHandler.setFormatter(logFormatter)
     rootLogger.addHandler(fileHandler)
 
@@ -115,6 +119,6 @@ if __name__ == '__main__':
     consoleHandler.setFormatter(logFormatter)
     rootLogger.addHandler(consoleHandler)
     
-    train(train_img_path, train_gt_path, pths_path, scopes, lr, num_workers,
-          epoch_iter, save_interval, rootLogger, start_from,
-          start_from_epoch, preload_data)
+    train(args.images_path, args.gts_path, args.save_path, scopes, args.lr, args.num_workers,
+          args.epochs, args.save_interval, rootLogger, args.start_from,
+          args.start_from_epoch, args.preload_data)
