@@ -6,6 +6,8 @@ import time
 from PIL import Image, ImageDraw
 from model import EAST
 import os
+import random
+from tqdm import tqdm
 from dataset import get_rotate_mat
 import numpy as np
 import lanms
@@ -89,7 +91,7 @@ def restore_polys(valid_pos, valid_geo, score_shape, scale=4):
     return np.array(polys), index
 
 
-def get_boxes(score, geo, score_thresh=0.9, nms_thresh=0.2):
+def get_boxes(score, geo, score_thresh=0.5, nms_thresh=0.2):
     '''get boxes from feature map
     Input:
         score       : score map from model <numpy.ndarray, (1,row,col)>
@@ -145,12 +147,12 @@ def detect(img, model, device):
     '''
     img, ratio_h, ratio_w = resize_img(img)
     with torch.no_grad():
-        score, geo = model(load_pil(img).to(device))
+        score, geo = model(load_pil(img).to(device), scope=512)
     boxes = get_boxes(score.squeeze(0).cpu().numpy(), geo.squeeze(0).cpu().numpy())
     return adjust_ratio(boxes, ratio_w, ratio_h)
 
 
-def plot_boxes(img, boxes):
+def plot_boxes(img, boxes, color="red"):
     '''plot boxes on image
     '''
     if boxes is None:
@@ -158,51 +160,40 @@ def plot_boxes(img, boxes):
     
     draw = ImageDraw.Draw(img)
     for box in boxes:
-        draw.polygon([box[0], box[1], box[2], box[3], box[4], box[5], box[6], box[7]], outline=(0,255,0))
+        draw.polygon([box[0], box[1], box[2], box[3], box[4], box[5], box[6], box[7]], outline=color)
     return img
 
 
-def detect_dataset(model, device, test_img_path, submit_path):
-    '''detection on whole dataset, save .txt results in submit_path
-    Input:
-        model        : detection model
-        device       : gpu if gpu is available
-        test_img_path: dataset path
-        submit_path  : submit result for evaluation
-    '''
-    img_files = os.listdir(test_img_path)
-    img_files = sorted([os.path.join(test_img_path, img_file) for img_file in img_files])
-    
-    for i, img_file in enumerate(img_files):
-        print('evaluating {} image'.format(i), end='\r')
-        boxes = detect(Image.open(img_file), model, device)
-        seq = []
-        if boxes is not None:
-            seq.extend([','.join([str(int(b)) for b in box[:-1]]) + '\n' for box in boxes])
-        with open(os.path.join(submit_path, 'res_' + os.path.basename(img_file).replace('.jpg','.txt')), 'w') as f:
-            f.writelines(seq)
-
-
 if __name__ == '__main__':
-    model_path  = './pths/model_epoch_15.pth'
-    device = torch.device("cpu")
+    parser = argparse.ArgumentParser(description="EAST trainer")
+    parser.add_argument("--images_path", type=str, help="path to images folder")
+    parser.add_argument("--save_path", type=str, help="path to save detected images")
+    parser.add_argument("--weights", type=str, help="path to model weights")
+    parser.add_argument("--device", type=str, default="cuda", help="model device, cuda or cpu")
+    parser.add_argument("--subset_size", type=int, default=None, help="size of images subset, None to use all images in directory")
+    args = parser.parse_args()
+    
+    device = torch.device(args.device)
     model = EAST().to(device)
-    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.load_state_dict(torch.load(args.weights, map_location=device))
     model.eval()
     
-    resize_to_big = False
-    result_dir = "result"
-    os.makedirs(result_dir, exist_ok=True)
+    os.makedirs(args.save_path, exist_ok=True)
     t0 = time.time()
-    image_nums = [0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000]
-    for image_num in image_nums:
-        img_path = '/home/evjeny/data_dir/perimetry_text_detection/images/{}.jpg'.format(image_num)
-        img = Image.open(img_path)
-        if resize_to_big:
-            img = img.resize((960, 960))
+    
+    image_names = [name for name in os.listdir(args.images_path) if name.endswith(".jpg") or name.endswith(".png")]
+    if args.subset_size:
+        image_names = random.sample(image_names, k=args.subset_size)
+    
+    for name in tqdm(image_names):
+        image_path = os.path.join(args.images_path, name)
+        save_image_path = os.path.join(args.save_path, name)
+        
+        img = Image.open(image_path)
         boxes = detect(img, model, device)
+        
         plot_img = plot_boxes(img, boxes)
-        plot_img.save(os.path.join(result_dir, "result_{}.jpg".format(image_num)))
+        plot_img.save(save_image_path)
     t1 = time.time()
-    print((t1-t0)/len(image_nums), "s for sample") 
+    print((t1 - t0) / len(image_names), "s for sample") 
 

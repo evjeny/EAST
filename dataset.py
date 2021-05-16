@@ -396,9 +396,7 @@ def load_sample(image_path, gt_path, length, scale, lock=None):
     score_map, geo_map, ignored_map = get_score_geo(img, vertices, labels, scale, length)
     
     global image_transform
-    # TODO: fix 2nd unnappliable transformation
-    # tensor_image = image_transform(img)
-    tensor_image = torch.from_numpy(np.array(img)).permute(2, 0, 1)
+    tensor_image = image_transform(img)
     
     return tensor_image, score_map, geo_map, ignored_map
 
