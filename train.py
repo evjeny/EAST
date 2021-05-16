@@ -92,8 +92,8 @@ def train(train_img_path, train_gt_path, pths_path, scopes, lr,
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="EAST trainer")
-    parser.add_argument("--images_path", type=str,default="/mnt/ramdisk/perimetry_text_detection_split/train_images", help="path to images")
-    parser.add_argument("--gts_path", type=str, default="/mnt/ramdisk/perimetry_text_detection_split/train_gts", help="path to ground truths")
+    parser.add_argument("--images_path", type=str, help="path to images folder")
+    parser.add_argument("--gts_path", type=str, help="path to ground truths folder")
     parser.add_argument("--save_path", type=str, default="./pths", help="path to save weights")
     parser.add_argument("--start_from", type=str, default=None, help="start from weights file")
     parser.add_argument("--start_from_epoch", type=int, default=0, help="start from epoch num")
