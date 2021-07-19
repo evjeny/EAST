@@ -130,9 +130,11 @@ dmypy.json
 
 # model weights
 pths/*
+east_map_detector
 
 # train stuffs
 log_train.txt
+log_train_map_detector.txt
 result
 
 # ide stuffs
