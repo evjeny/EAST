@@ -442,12 +442,16 @@ def load_sample_shared(args):
     geo_arr_torch[index] = geo
     ignored_arr_torch[index] = ignored
 
-    
+
+def is_image(name):
+    return name.split(".")[-1] in ["jpg", "png", "jpeg"]
+
+
 class CustomDataset(data.Dataset):
     def __init__(self, img_path, gt_path, scale=0.25, length=512,
                  min_image_size=300, max_image_size=1000):
         super(CustomDataset, self).__init__()
-        img_files = [os.path.join(img_path, img_file) for img_file in sorted(os.listdir(img_path)) if img_file.endswith(".jpg")]
+        img_files = [os.path.join(img_path, img_file) for img_file in sorted(os.listdir(img_path)) if is_image(img_file)]
         gt_files  = [os.path.join(gt_path, gt_file) for gt_file in sorted(os.listdir(gt_path)) if gt_file.endswith(".txt")]
         
         allowed_indices = []
